@@ -21,7 +21,7 @@ lvim.leader = "space"
 lvim.keys.normal_mode["<C-s>"] = ":w<cr>"
 lvim.keys.normal_mode["<S-l>"] = ":BufferLineCycleNext<CR>"
 lvim.keys.normal_mode["<S-h>"] = ":BufferLineCyclePrev<CR>"
--- unmap a default keymapping
+lvim.lsp.diagnostics.virtual_text = false
 -- vim.keymap.del("n", "<C-Up>")
 -- override a default keymapping
 -- lvim.keys.normal_mode["<C-q>"] = ":q<cr>" -- or vim.keymap.set("n", "<C-q>", ":q<cr>" )
@@ -192,6 +192,12 @@ lvim.plugins = {
     end,
   },
   { 'nvim-telescope/telescope-ui-select.nvim' },
+  {
+    "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
+    config = function()
+      require("lsp_lines").setup()
+    end,
+  },
 }
 
 
@@ -200,40 +206,13 @@ require("telescope").setup({
   extensions = {
     ["ui-select"] = {
       require("telescope.themes").get_dropdown {
-        -- even more opts
       }
-
-      -- pseudo code / specification for writing custom displays, like the one
-      -- for "codeactions"
-      -- specific_opts = {
-      --   [kind] = {
-      --     make_indexed = function(items) -> indexed_items, width,
-      --     make_displayer = function(widths) -> displayer
-      --     make_display = function(displayer) -> function(e)
-      --     make_ordinal = function(e) -> string
-      --   },
-      --   -- for example to disable the custom builtin "codeactions" display
-      --      do the following
-      --   codeactions = false,
-      -- }
     }
   }
 })
--- To get ui-select loaded and working with telescope, you need to call
--- load_extension, somewhere after setup function:
-require("telescope").load_extension("ui-select")
--- lvim.lsp.automatic_configuration.skipped_servers({ "dart" })
 
+require("telescope").load_extension("ui-select")
 -- Autocommands (https://neovim.io/doc/user/autocmd.html)
--- vim.api.nvim_create_autocmd("BufEnter", {
---   pattern = { "*.json", "*.jsonc" },
---   -- enable wrap mode for json files only
---   command = "setlocal wrap",
--- })
--- vim.api.nvim_create_autocmd("FileType", {
---   pattern = "zsh",
---   callback = function()
---     -- let treesitter use bash highlight for zsh files as well
---     require("nvim-treesitter.highlight").attach(0, "bash")
---   end,
--- })
+vim.api.nvim_create_autocmd("CursorHold", {
+  command = "lua vim.diagnostic.open_float(0)",
+})
