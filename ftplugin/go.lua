@@ -21,13 +21,6 @@ lvim.builtin.treesitter.ensure_installed = {
   "gomod",
 }
 
-------------------------
--- Plugins
-------------------------
-lvim.plugins = {
-  "olexsmir/gopher.nvim",
-  "leoluz/nvim-dap-go",
-}
 
 ------------------------
 -- Formatting

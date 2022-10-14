@@ -5,6 +5,9 @@ lvim.builtin.which_key.mappings["F"] = { "<cmd>Telescope flutter commands<CR>", 
 require("flutter-tools").setup({
   -- flutter_path = "/home/padre/snap/flutter/common/flutter/",
   lsp = {
+    color = {
+      enabled = true,
+    },
     on_attach = function(client, bufnr)
       require("lvim.lsp").common_on_attach(client, bufnr)
     end,
@@ -18,11 +21,13 @@ require("flutter-tools").setup({
     end,
     run_via_dap = false,
   },
-  fvm = true,
   widget_guides = {
     enabled = true,
   },
   dev_log = {
-    open_cmd = "20new"
+    enabled = false,
+    open_cmd = "10new"
   },
 })
+
+require 'luasnip'.filetype_extend("dart", { "flutter" })

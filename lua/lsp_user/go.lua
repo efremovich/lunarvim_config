@@ -7,14 +7,6 @@ lvim.builtin.treesitter.ensure_installed = {
 }
 
 ------------------------
--- Plugins
-------------------------
-lvim.plugins = {
-  "olexsmir/gopher.nvim",
-  "leoluz/nvim-dap-go",
-}
-
-------------------------
 -- Formatting
 ------------------------
 local formatters = require "lvim.lsp.null-ls.formatters"
