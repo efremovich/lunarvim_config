@@ -11,7 +11,7 @@ an executable
 -- general
 lvim.log.level = "warn"
 lvim.format_on_save = true
-lvim.colorscheme = "gruvbox-baby"
+lvim.colorscheme = "gruvbox-material"
 -- to disable icons and use a minimalist setup, uncomment the following
 -- lvim.use_icons = false
 
@@ -64,7 +64,7 @@ lvim.builtin.which_key.mappings["t"] = {
 -- After changing plugin config exit and reopen LunarVim, Run :PackerInstall :PackerCompile
 lvim.builtin.alpha.active = true
 lvim.builtin.alpha.mode = "dashboard"
-lvim.builtin.notify.active = true
+-- lvim.builtin.notify.active = true
 lvim.builtin.terminal.active = true
 lvim.builtin.nvimtree.setup.view.side = "left"
 lvim.builtin.nvimtree.setup.renderer.icons.show.git = false
@@ -88,6 +88,15 @@ lvim.builtin.treesitter.ensure_installed = {
 lvim.builtin.treesitter.ignore_install = { "haskell" }
 lvim.builtin.treesitter.highlight.enable = true
 
+
+local linters = require "lvim.lsp.null-ls.linters"
+linters.setup {
+  {
+    command = "eslint",
+    args = { "-f", "json", "--stdin", "--stdin-filename", "$FILENAME" },
+    filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "vue" },
+  }
+}
 
 -- Additional Plugins
 lvim.plugins = {
@@ -117,23 +126,14 @@ lvim.plugins = {
     end,
   },
   { 'nvim-telescope/telescope-ui-select.nvim' },
-  "olexsmir/gopher.nvim",
-  "leoluz/nvim-dap-go",
-  {
-    "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
-    config = function()
-      require("lsp_lines").setup()
-    end,
-  },
-  { 'luisiacc/gruvbox-baby' },
-  {
-    'declancm/cinnamon.nvim',
-    config = function() require('cinnamon').setup() end
-  },
+  { 'sainnhe/gruvbox-material' },
+
+  { "olexsmir/gopher.nvim" },
+  { "leoluz/nvim-dap-go" },
 }
 require("luasnip.loaders.from_snipmate").lazy_load()
 
-require("lsp_lines").setup()
+-- require("lsp_lines").setup()
 -- This is your opts table
 require("telescope").setup({
   extensions = {
@@ -145,9 +145,3 @@ require("telescope").setup({
 })
 
 require("telescope").load_extension("ui-select")
-require('cinnamon').setup {
-  extra_keymaps = true,
-  override_keymaps = true,
-  max_length = 500,
-  scroll_limit = -1,
-}

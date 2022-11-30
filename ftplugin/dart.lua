@@ -1,6 +1,5 @@
 vim.list_extend(lvim.lsp.automatic_configuration.skipped_servers, { "dartls" })
 
-lvim.builtin.which_key.mappings["F"] = { "<cmd>Telescope flutter commands<CR>", "Flutter commands" }
 
 require("flutter-tools").setup({
   -- flutter_path = "/home/padre/snap/flutter/common/flutter/",
@@ -19,15 +18,16 @@ require("flutter-tools").setup({
       require("dap").configurations.dart = {}
       require("dap.ext.vscode").load_launchjs()
     end,
-    run_via_dap = false,
+    -- run_via_dap = true,
   },
   widget_guides = {
     enabled = true,
   },
-  dev_log = {
-    enabled = false,
-    open_cmd = "10new"
-  },
+  -- dev_log = {
+  --   enabled = true,
+  --   open_cmd = "tabedit"
+  -- },
 })
 
 require 'luasnip'.filetype_extend("dart", { "flutter" })
+lvim.builtin.which_key.mappings["F"] = { "<cmd>Telescope flutter commands<CR>", "Flutter commands" }
