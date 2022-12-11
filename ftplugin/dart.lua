@@ -15,18 +15,25 @@ require("flutter-tools").setup({
   debugger = {
     enabled = true,
     runregister_configurations = function(_)
-      require("dap").configurations.dart = {}
+      require("dap").configurations.dart = {
+        type = "dart",
+        request = "launch",
+        name = "Launch flutter",
+        program = "${workspaceFolder}/lib/main.dart",
+        cwd = "${workspaceFolder}",
+        args = { '-d', 'linux' }
+      }
       require("dap.ext.vscode").load_launchjs()
     end,
-    -- run_via_dap = true,
+    run_via_dap = true,
   },
   widget_guides = {
     enabled = true,
   },
-  -- dev_log = {
-  --   enabled = true,
-  --   open_cmd = "tabedit"
-  -- },
+  dev_log = {
+    enabled = true,
+    open_cmd = "tabedit"
+  },
 })
 
 require 'luasnip'.filetype_extend("dart", { "flutter" })
