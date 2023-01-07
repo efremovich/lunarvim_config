@@ -130,6 +130,7 @@ lvim.plugins = {
 
   { "olexsmir/gopher.nvim" },
   { "leoluz/nvim-dap-go" },
+  -- { "mg979/vim-visual-multi" },
 }
 require("luasnip.loaders.from_snipmate").lazy_load()
 

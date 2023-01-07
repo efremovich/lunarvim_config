@@ -25,6 +25,7 @@ require("flutter-tools").setup({
       }
       require("dap.ext.vscode").load_launchjs()
     end,
+    exception_breakpoints = {},
     run_via_dap = true,
   },
   widget_guides = {
