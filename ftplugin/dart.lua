@@ -7,6 +7,9 @@ require("flutter-tools").setup({
     color = {
       enabled = true,
     },
+    settings = {
+      lineLength = 120,
+    },
     on_attach = function(client, bufnr)
       require("lvim.lsp").common_on_attach(client, bufnr)
     end,
