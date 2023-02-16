@@ -133,6 +133,11 @@ lvim.plugins = {
   -- { "mg979/vim-visual-multi" },
   { "iamcco/markdown-preview.nvim" },
   { 'kevinhwang91/nvim-ufo', requires = 'kevinhwang91/promise-async' },
+  { 'nvim-treesitter/nvim-treesitter' },
+  { 'nvim-orgmode/orgmode', config = function()
+    require('orgmode').setup {}
+  end
+  },
 }
 require("luasnip.loaders.from_snipmate").lazy_load()
 
@@ -147,70 +152,121 @@ require("telescope").setup({
   }
 })
 
+
 require("telescope").load_extension("ui-select")
 
-vim.cmd([[
-set nofoldenable
-set foldlevel=99
-set fillchars=fold:\
-set foldtext=CustomFoldText()
-setlocal foldmethod=expr
-setlocal foldexpr=GetPotionFold(v:lnum)
+vim.opt.relativenumber = true
+vim.opt.listchars = "eol:↲,tab:» ,trail:·,extends:<,precedes:>,conceal:┊,nbsp:␣"
 
-function! GetPotionFold(lnum)
-  if getline(a:lnum) =~? '\v^\s*$'
-    return '-1'
-  endif
+lvim.autocommands = {
+  {
+    "InsertLeave", {
+      pattern = { "*" },
+      callback = function()
+        vim.opt.relativenumber = true
+        vim.opt.cursorline = true
+      end
+    },
+  }, {
+    "InsertEnter", {
+      pattern = { "*" },
+      callback = function()
+        vim.opt.relativenumber = false
+        vim.opt.cursorline = false
+      end
+    },
+  }, {
+    "BufRead", {
+      pattern = { "*.go", "*,dart" },
+      callback = function()
+        vim.cmd([[
+      set nofoldenable
+      set foldlevel=999999
+      set fillchars=fold:\
+      set foldtext=CustomFoldText()
+      setlocal foldmethod=expr
+      setlocal foldexpr=GetPotionFold(v:lnum)
 
-  let this_indent = IndentLevel(a:lnum)
-  let next_indent = IndentLevel(NextNonBlankLine(a:lnum))
+      function! GetPotionFold(lnum)
+        if getline(a:lnum) =~? '\v^\s*$'
+          return '-1'
+        endif
 
-  if next_indent == this_indent
-    return this_indent
-  elseif next_indent < this_indent
-    return this_indent
-  elseif next_indent > this_indent
-    return '>' . next_indent
-  endif
-endfunction
+        let this_indent = IndentLevel(a:lnum)
+        let next_indent = IndentLevel(NextNonBlankLine(a:lnum))
 
-function! IndentLevel(lnum)
-    return indent(a:lnum) / &shiftwidth
-endfunction
+        if next_indent == this_indent
+          return this_indent
+        elseif next_indent < this_indent
+          return this_indent
+        elseif next_indent > this_indent
+          return '>' . next_indent
+        endif
+      endfunction
 
-function! NextNonBlankLine(lnum)
-  let numlines = line('$')
-  let current = a:lnum + 1
+      function! IndentLevel(lnum)
+          return indent(a:lnum) / &shiftwidth
+      endfunction
 
-  while current <= numlines
-      if getline(current) =~? '\v\S'
-          return current
-      endif
+      function! NextNonBlankLine(lnum)
+        let numlines = line('$')
+        let current = a:lnum + 1
 
-      let current += 1
-  endwhile
+        while current <= numlines
+            if getline(current) =~? '\v\S'
+                return current
+            endif
 
-  return -2
-endfunction
+            let current += 1
+        endwhile
 
-function! CustomFoldText()
-  " get first non-blank line
-  let fs = v:foldstart
+        return -2
+      endfunction
 
-  while getline(fs) =~ '^\s*$' | let fs = nextnonblank(fs + 1)
-  endwhile
+      function! CustomFoldText()
+        " get first non-blank line
+        let fs = v:foldstart
 
-  if fs > v:foldend
-      let line = getline(v:foldstart)
-  else
-      let line = substitute(getline(fs), '\t', repeat(' ', &tabstop), 'g')
-  endif
+        while getline(fs) =~ '^\s*$' | let fs = nextnonblank(fs + 1)
+        endwhile
 
-  let w = winwidth(0) - &foldcolumn - (&number ? 8 : 0)
-  let foldSize = 1 + v:foldend - v:foldstart
-  let foldSizeStr = " " . foldSize . " lines "
-  let foldLevelStr = repeat("+--", v:foldlevel)
-  let expansionString = repeat(" ", w - strwidth(foldSizeStr.line.foldLevelStr))
-  return line . expansionString . foldSizeStr . foldLevelStr
-endfunction
-]])
+        if fs > v:foldend
+            let line = getline(v:foldstart)
+        else
+            let line = substitute(getline(fs), '\t', repeat(' ', &tabstop), 'g')
+        endif
+
+        let w = winwidth(0) - &foldcolumn - (&number ? 8 : 0)
+        let foldSize = 1 + v:foldend - v:foldstart
+        let foldSizeStr = " " . foldSize . " lines "
+        let foldLevelStr = repeat("+--", v:foldlevel)
+        let expansionString = repeat(" ", w - strwidth(foldSizeStr.line.foldLevelStr))
+        return line . expansionString . foldSizeStr . foldLevelStr
+      endfunction
+      ]] )
+      end
+    },
+  },
+}
+
+
+-- Load custom treesitter grammar for org filetype
+require('orgmode').setup_ts_grammar()
+
+-- Treesitter configuration
+require('nvim-treesitter.configs').setup {
+  -- If TS highlights are not enabled at all, or disabled via `disable` prop,
+  -- highlighting will fallback to default Vim syntax highlighting
+  highlight = {
+    enable = true,
+    -- Required for spellcheck, some LaTex highlights and
+    -- code block highlights that do not have ts grammar
+    additional_vim_regex_highlighting = { 'org' },
+  },
+  ensure_installed = { 'org' }, -- Or run :TSUpdate org
+}
+
+require('orgmode').setup({
+  org_agenda_files = { '~/OrgMod/**/*' },
+  org_default_notes_file = '~/OrgMod/refile.org',
+})

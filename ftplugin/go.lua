@@ -35,8 +35,14 @@ if not dap_ok then
   return
 end
 
-dapgo.setup()
-
+dapgo.setup(
+  {
+    dap_configurations = {
+      type = "go",
+      dlvFlags = "--check-go-version=false"
+    },
+  }
+)
 ------------------------
 -- LSP
 ------------------------
