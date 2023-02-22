@@ -69,6 +69,7 @@ lvim.builtin.terminal.active = true
 lvim.builtin.nvimtree.setup.view.side = "left"
 lvim.builtin.nvimtree.setup.renderer.icons.show.git = false
 lvim.builtin.dap.active = true
+lvim.builtin.breadcrumbs.active = false
 -- if you don't want all the parsers change this to a table of the ones you want
 lvim.builtin.treesitter.ensure_installed = {
   "bash",
@@ -133,7 +134,6 @@ lvim.plugins = {
   -- { "mg979/vim-visual-multi" },
   { "iamcco/markdown-preview.nvim" },
   { 'kevinhwang91/nvim-ufo', requires = 'kevinhwang91/promise-async' },
-  { 'nvim-treesitter/nvim-treesitter' },
   { 'nvim-orgmode/orgmode', config = function()
     require('orgmode').setup {}
   end
@@ -141,16 +141,12 @@ lvim.plugins = {
 }
 require("luasnip.loaders.from_snipmate").lazy_load()
 
--- require("lsp_lines").setup()
--- This is your opts table
-require("telescope").setup({
-  extensions = {
-    ["ui-select"] = {
-      require("telescope.themes").get_dropdown {
-      }
+lvim.builtin.telescope.extensions = {
+  ["ui-select"] = {
+    require("telescope.themes").get_dropdown {
     }
   }
-})
+}
 
 
 require("telescope").load_extension("ui-select")
@@ -159,6 +155,14 @@ vim.opt.relativenumber = true
 vim.opt.listchars = "eol:↲,tab:» ,trail:·,extends:<,precedes:>,conceal:┊,nbsp:␣"
 
 lvim.autocommands = {
+  -- {
+  --   "BufWritePost", {
+  --     pattern = { "*.org" },
+  --     callback = function()
+  --       vim.cmd [[ silent !rsync -r --size-only ~/OrgFiles/ ~/OrgMod/ --temp-dir=/tmp --no-owner --no-group]]
+  --     end
+  --   }
+  -- },
   {
     "InsertLeave", {
       pattern = { "*" },
@@ -253,6 +257,51 @@ lvim.autocommands = {
 -- Load custom treesitter grammar for org filetype
 require('orgmode').setup_ts_grammar()
 
+require('orgmode').setup(
+  {
+    notifications = {
+      enabled = false,
+      cron_enabled = true,
+      repeater_reminder_time = false,
+      deadline_warning_reminder_time = false,
+      reminder_time = 10,
+      deadline_reminder = true,
+      scheduled_reminder = true,
+      notifier = function(tasks)
+        local result = {}
+        for _, task in ipairs(tasks) do
+          require('orgmode.utils').concat(result, {
+            string.format('# %s (%s)', task.category, task.humanized_duration),
+            string.format('%s %s %s', string.rep('*', task.level), task.todo, task.title),
+            string.format('%s: <%s>', task.type, task.time:to_string())
+          })
+        end
+
+        if not vim.tbl_isempty(result) then
+          require('orgmode.notifications.notification_popup'):new({ content = result })
+        end
+      end,
+      cron_notifier = function(tasks)
+        for _, task in ipairs(tasks) do
+          local title = string.format('%s (%s)', task.category, task.humanized_duration)
+          local subtitle = string.format('%s %s %s', string.rep('*', task.level), task.todo, task.title)
+          local date = string.format('%s: %s', task.type, task.time:to_string())
+
+          -- Linux
+          if vim.fn.executable('notify-send') == 1 then
+            vim.loop.spawn('notify-send', { args = { string.format('%s\n%s\n%s', title, subtitle, date) } })
+          end
+
+          -- MacOS
+          if vim.fn.executable('terminal-notifier') == 1 then
+            vim.loop.spawn('terminal-notifier', { args = { '-title', title, '-subtitle', subtitle, '-message', date } })
+          end
+        end
+      end
+    },
+  }
+)
+
 -- Treesitter configuration
 require('nvim-treesitter.configs').setup {
   -- If TS highlights are not enabled at all, or disabled via `disable` prop,
@@ -267,6 +316,10 @@ require('nvim-treesitter.configs').setup {
 }
 
 require('orgmode').setup({
-  org_agenda_files = { '~/OrgMod/**/*' },
-  org_default_notes_file = '~/OrgMod/refile.org',
+  org_agenda_files = { '~/OrgFiles/**/*' },
+  org_default_notes_file = '~/OrgFiles/refile.org',
 })
+
+vim.opt.conceallevel = 2
+vim.opt.concealcursor = 'nc'
+vim.opt.shellslash = true
