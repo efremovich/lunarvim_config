@@ -35,14 +35,17 @@ if not dap_ok then
   return
 end
 
-dapgo.setup(
-  {
-    dap_configurations = {
+dapgo.setup {
+  dap_configurations = {
+    {
+      name = "Launch Package",
+      request = "launch",
+      program = "${workspaceFolder}",
       type = "go",
       dlvFlags = "--check-go-version=false"
-    },
-  }
-)
+    }
+  },
+}
 ------------------------
 -- LSP
 ------------------------

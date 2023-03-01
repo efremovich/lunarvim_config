@@ -99,6 +99,13 @@ linters.setup {
   }
 }
 
+local formater = require "lvim.lsp.null-ls.formatters"
+formater.setup {
+  {
+    command = "stylua",
+    filetypes = { "org" },
+  }
+}
 -- Additional Plugins
 lvim.plugins = {
   { "lunarvim/colorschemes" },
@@ -138,6 +145,17 @@ lvim.plugins = {
     require('orgmode').setup {}
   end
   },
+  -- { 'akinsho/org-bullets.nvim', config = function()
+  --   require('org-bullets').setup()
+  -- end
+  -- },
+  -- {
+  --   'lukas-reineke/headlines.nvim',
+  --   after = 'nvim-treesitter',
+  --   config = function()
+  --     require('headlines').setup()
+  --   end,
+  -- },
 }
 require("luasnip.loaders.from_snipmate").lazy_load()
 
@@ -318,6 +336,9 @@ require('nvim-treesitter.configs').setup {
 require('orgmode').setup({
   org_agenda_files = { '~/OrgFiles/**/*' },
   org_default_notes_file = '~/OrgFiles/refile.org',
+  org_hide_leading_stars = true,
+  org_agenda_skip_scheduled_if_done = true,
+  org_agenda_skip_deadline_if_done = true,
 })
 
 vim.opt.conceallevel = 2
