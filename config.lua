@@ -103,7 +103,8 @@ local formater = require "lvim.lsp.null-ls.formatters"
 formater.setup {
   {
     command = "stylua",
-    filetypes = { "org" },
+    args = { "$FILENAME" },
+    filetypes = { "orgmode" },
   }
 }
 -- Additional Plugins
@@ -156,6 +157,9 @@ lvim.plugins = {
   --     require('headlines').setup()
   --   end,
   -- },
+  {
+    "norcalli/nvim-colorizer.lua",
+  },
 }
 require("luasnip.loaders.from_snipmate").lazy_load()
 
@@ -166,21 +170,27 @@ lvim.builtin.telescope.extensions = {
   }
 }
 
+require("colorizer").setup({ "*" }, {
+  RGB = true, -- #RGB hex codes
+  RRGGBB = true, -- #RRGGBB hex codes
+  RRGGBBAA = true, -- #RRGGBBAA hex codes
+  rgb_fn = true, -- CSS rgb() and rgba() functions
+  hsl_fn = true, -- CSS hsl() and hsla() functions
+  css = true, -- Enable all CSS features: rgb_fn, hsl_fn, names, RGB, RRGGBB
+  css_fn = true, -- Enable all CSS *functions*: rgb_fn, hsl_fn
+})
 
 require("telescope").load_extension("ui-select")
 
-vim.opt.relativenumber = true
-vim.opt.listchars = "eol:↲,tab:» ,trail:·,extends:<,precedes:>,conceal:┊,nbsp:␣"
 
+local function SyncOrg()
+  vim.cmd([[
+  silent !rsync -avxhHl ~/OrgFiles/ ~/OrgMod
+  ]])
+end
+
+vim.api.nvim_create_user_command("SyncOrg", SyncOrg, {})
 lvim.autocommands = {
-  -- {
-  --   "BufWritePost", {
-  --     pattern = { "*.org" },
-  --     callback = function()
-  --       vim.cmd [[ silent !rsync -r --size-only ~/OrgFiles/ ~/OrgMod/ --temp-dir=/tmp --no-owner --no-group]]
-  --     end
-  --   }
-  -- },
   {
     "InsertLeave", {
       pattern = { "*" },
@@ -199,11 +209,11 @@ lvim.autocommands = {
     },
   }, {
     "BufRead", {
-      pattern = { "*.go", "*,dart" },
+      pattern = { "*.go", "*,dart", "*.org" },
       callback = function()
         vim.cmd([[
       set nofoldenable
-      set foldlevel=999999
+      set foldlevel=2
       set fillchars=fold:\
       set foldtext=CustomFoldText()
       setlocal foldmethod=expr
@@ -274,60 +284,9 @@ lvim.autocommands = {
 
 -- Load custom treesitter grammar for org filetype
 require('orgmode').setup_ts_grammar()
-
-require('orgmode').setup(
-  {
-    notifications = {
-      enabled = false,
-      cron_enabled = true,
-      repeater_reminder_time = false,
-      deadline_warning_reminder_time = false,
-      reminder_time = 10,
-      deadline_reminder = true,
-      scheduled_reminder = true,
-      notifier = function(tasks)
-        local result = {}
-        for _, task in ipairs(tasks) do
-          require('orgmode.utils').concat(result, {
-            string.format('# %s (%s)', task.category, task.humanized_duration),
-            string.format('%s %s %s', string.rep('*', task.level), task.todo, task.title),
-            string.format('%s: <%s>', task.type, task.time:to_string())
-          })
-        end
-
-        if not vim.tbl_isempty(result) then
-          require('orgmode.notifications.notification_popup'):new({ content = result })
-        end
-      end,
-      cron_notifier = function(tasks)
-        for _, task in ipairs(tasks) do
-          local title = string.format('%s (%s)', task.category, task.humanized_duration)
-          local subtitle = string.format('%s %s %s', string.rep('*', task.level), task.todo, task.title)
-          local date = string.format('%s: %s', task.type, task.time:to_string())
-
-          -- Linux
-          if vim.fn.executable('notify-send') == 1 then
-            vim.loop.spawn('notify-send', { args = { string.format('%s\n%s\n%s', title, subtitle, date) } })
-          end
-
-          -- MacOS
-          if vim.fn.executable('terminal-notifier') == 1 then
-            vim.loop.spawn('terminal-notifier', { args = { '-title', title, '-subtitle', subtitle, '-message', date } })
-          end
-        end
-      end
-    },
-  }
-)
-
--- Treesitter configuration
 require('nvim-treesitter.configs').setup {
-  -- If TS highlights are not enabled at all, or disabled via `disable` prop,
-  -- highlighting will fallback to default Vim syntax highlighting
   highlight = {
     enable = true,
-    -- Required for spellcheck, some LaTex highlights and
-    -- code block highlights that do not have ts grammar
     additional_vim_regex_highlighting = { 'org' },
   },
   ensure_installed = { 'org' }, -- Or run :TSUpdate org
@@ -339,8 +298,18 @@ require('orgmode').setup({
   org_hide_leading_stars = true,
   org_agenda_skip_scheduled_if_done = true,
   org_agenda_skip_deadline_if_done = true,
+  org_todo_keywords = { 'TODO', 'TESTING', 'WAITING', '|', 'DONE' },
+  org_todo_keyword_faces = {
+    TESTING = ':foreground #abb2bf :slant italic',
+    WAITING = ':foreground #98c379 :slant italic',
+  },
+  org_capture_templates = {
+    s = { description = 'Sheduled', template = '* TODO %?\nSCHEDULED: %t\n:PROPERTIES:\n:CATEGORY:\n:END:\n' }
+  }
 })
 
 vim.opt.conceallevel = 2
 vim.opt.concealcursor = 'nc'
 vim.opt.shellslash = true
+vim.opt.relativenumber = true
+vim.opt.listchars = "eol:↲,tab:» ,trail:·,extends:<,precedes:>,conceal:┊,nbsp:␣"
